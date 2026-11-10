@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ScopeSignal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--rust:#C2402A;--amb:#F49D37;--cr:#FFE8C2;--dk:#160B0B;--glass:#160b0b8c;--line:#ffe8c22e;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--dk);color:var(--cr);font:400 1rem/1.6 "DM Sans",system-ui,sans-serif;overflow-x:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:-1;display:block}
+h1,h2,h3{font-family:"Instrument Serif",Georgia,serif;font-weight:400;margin:0;line-height:1.05}
+button{font-family:inherit}:focus-visible{outline:3px solid var(--amb);outline-offset:3px}
+.glass{background:var(--glass);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);border:1px solid var(--line);border-radius:22px}
+.jelly,.pill{border:0;border-radius:99px;padding:.6rem 1.3rem;font-weight:600;font-size:.88rem;color:var(--dk)!important;background:var(--cr);cursor:pointer;display:inline-flex;align-items:center;text-decoration:none;transition:transform .15s,background .15s}
+.jelly:hover,.pill:hover{transform:translateY(-1px);background:#fff3dc}
+.ghost{border:1.5px solid var(--line);background:transparent;color:inherit;border-radius:99px;padding:.4rem 1rem;font-size:.85rem;cursor:pointer}.ghost:hover{border-color:var(--cr)}
+.topbar{position:fixed;z-index:10;top:calc(1rem + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:1.6rem;padding:.4rem .45rem .4rem 1rem;border-radius:14px;font-size:.85rem;white-space:nowrap}
+.topbar a{color:inherit;text-decoration:none}
+.brand{display:flex;gap:.5rem;align-items:center;font:400 1.3rem "Instrument Serif",serif}.brand svg{width:22px;height:22px}
+@media(max-width:600px){.topbar .lk{display:none}.topbar{gap:1rem}}
+.hero{min-height:100svh;display:grid;place-items:center;padding:7rem 1.2rem 3rem}
+.card{max-width:540px;text-align:center;padding:2.6rem 2.2rem}
+.tagc{display:inline-block;font-size:.72rem;border:1px solid var(--line);border-radius:99px;padding:.1rem .7rem;margin-bottom:1.3rem;color:var(--amb)}
+.card h1{font-size:clamp(2.7rem,6.5vw,4.4rem);line-height:1}
+.card p{opacity:.85;margin:1.1rem 0 1.6rem;font-size:.95rem}
+.strip{max-width:1000px;margin:0 auto;padding:1rem 1.4rem;display:flex;flex-wrap:wrap;gap:.7rem 1.2rem;align-items:center;font-size:.85rem}
+.strip span.l{opacity:.75;margin-right:.6rem;max-width:16ch;line-height:1.3}
+.strip i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:.4rem}
+section{max-width:1000px;margin:2rem auto;padding:2.2rem clamp(1rem,3vw,2rem)}
+h2{font-size:clamp(2.2rem,4.5vw,3.2rem);margin-bottom:.4rem}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1.4rem;margin-top:1.8rem}
+.flow li{list-style:none}
+.flow .n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:400 1.1rem "Instrument Serif",serif;border:1.5px solid var(--amb);color:var(--amb);margin-bottom:.6rem}
+.flow h3{font-size:1.5rem;margin-bottom:.2rem}.flow p{margin:0;font-size:.88rem;opacity:.8}
+.bench{background:#ffe8c211;border:1px solid var(--line);border-radius:18px;padding:clamp(1rem,3vw,1.6rem)}
+.tabs{display:flex;gap:.4rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.tab{border:0;background:transparent;color:inherit;font-weight:600;font-size:.9rem;padding:.4rem .9rem;border-radius:99px;cursor:pointer;opacity:.6}
+.tab[aria-selected="true"]{background:var(--cr);color:var(--dk);opacity:1}.tab:disabled{opacity:.3;cursor:not-allowed}
+.say{margin:0 0 1rem;font-size:.95rem;opacity:.9}
+.inputs{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:760px){.inputs,.two{grid-template-columns:1fr!important}}
+.hop{border:1px solid var(--line);border-radius:12px;padding:.7rem 1rem;background:#160b0b73}
+.hop label{font:400 1.4rem "Instrument Serif",serif;display:block}.hop small{display:block;opacity:.7;margin-bottom:.3rem}
+textarea{width:100%;min-height:140px;border:0;background:transparent;font:inherit;font-size:.92rem;color:inherit;resize:vertical}
+.nav2{display:flex;gap:.8rem;align-items:center;margin-top:1.2rem;flex-wrap:wrap}
+.chips{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem;font-size:.85rem}
+.chip{border:1.5px solid var(--line);background:transparent;color:inherit;border-radius:99px;padding:.3rem .9rem;font-size:.85rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--cr);color:var(--dk);border-color:var(--cr)}
+.list{border:1px solid var(--line);border-radius:12px;background:#160b0b66;max-height:400px;overflow:auto}
+.hint{padding:1.3rem;text-align:center;opacity:.8;font-size:.9rem}
+.note{border-bottom:1px solid var(--line)}.note:last-child{border:0}
+.head{all:unset;box-sizing:border-box;display:flex;gap:.8rem;align-items:center;width:100%;padding:.8rem 1rem;cursor:pointer}
+.head:focus-visible{outline:3px solid var(--amb);outline-offset:-3px}
+.dot{width:34px;height:34px;border-radius:12px;flex:none}
+.t{flex:1;font-weight:600;line-height:1.3;font-size:.95rem}
+.badge{font-size:.72rem;font-weight:600;border-radius:99px;padding:.1rem .65rem;color:#160B0B;white-space:nowrap}
+.body{display:none;padding:0 1rem 1rem 3.4rem;gap:.7rem}.note.open .body{display:grid}
+.new{animation:land .5s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes land{from{opacity:0;transform:translateX(36px)}}
+.ev{font-size:.88rem;display:grid;gap:.3rem}.ev q{background:#f49d3759;padding:0 .25rem;border-radius:4px;quotes:"“" "”"}
+.step2{border:1.5px dashed var(--line);border-radius:10px;padding:.4rem .7rem;min-height:2.2rem;font-size:.9rem}
+.acts{display:flex;flex-wrap:wrap;gap:.6rem}.acts .jelly{padding:.45rem 1rem;font-size:.85rem}
+.cap{font-size:.78rem;opacity:.7;margin:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.two h3{font-size:1.5rem}.two p{margin:.2rem 0 .5rem;font-size:.85rem;opacity:.8}
+.two textarea{background:#160b0b73;border:1px solid var(--line);border-radius:12px;padding:.8rem;min-height:200px}
+.toast{position:fixed;top:calc(5rem + env(safe-area-inset-top,0px));right:1rem;z-index:20;background:var(--cr);color:var(--dk);border-radius:14px;padding:.6rem 1rem;font-weight:600;font-size:.9rem;box-shadow:0 10px 24px #0006;transform:translateX(130%);transition:transform .45s cubic-bezier(.2,1.3,.4,1)}
+.toast.on{transform:none}
+.site{overflow:hidden;padding:3rem 1.4rem 0}
+.sitetop{max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;gap:2rem;flex-wrap:wrap;font-size:.85rem}
+.sitetop p{max-width:46ch;margin:0;opacity:.8}.sitetop nav{display:flex;gap:1.4rem}.sitetop a{color:inherit}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto}}
+.mid{max-width:1000px;margin:3rem auto 0;padding-bottom:3rem;display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;flex-wrap:wrap}
+.mark{display:block;width:48px;height:48px;margin:0 0 .8rem}
+.word{margin:0;font:400 clamp(3rem,8vw,5.5rem)/1 "Instrument Serif",serif;letter-spacing:-.02em;white-space:nowrap;background:linear-gradient(180deg,#FFE8C2 10%,#F49D37 60%,#C2402A 110%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tag{margin:.5rem 0 0;font:italic 400 1.3rem "Instrument Serif",serif;opacity:.9}
+.orb{position:relative;width:150px;height:150px;flex:none;border-radius:50%}
+.hero-orb{width:112px;height:112px;margin:-.2rem auto 1.1rem}
+.orb canvas{position:absolute;inset:0;width:100%;height:100%}
+.seg{display:flex;gap:.3rem;align-items:center;flex-wrap:wrap;font-size:.8rem}.seg b{font-weight:600;min-width:6.5rem}.seg .chip{padding:.12rem .7rem;font-size:.78rem}
+.rate{display:grid;gap:.5rem;border:1px solid var(--line);border-radius:12px;padding:.7rem .8rem;background:#160b0b40}
+.verd{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;font-size:.85rem;margin-top:.2rem}
+.pri{background:transparent;border:1px solid var(--cr);color:var(--cr)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="logo" viewBox="0 0 64 64"><path d="M32 32H6A26 26 0 0 1 32 6z" fill="#FFE8C2"/><path d="M32 32h26A26 26 0 0 1 32 58z" fill="#F49D37"/><path d="M36 6a22 22 0 0 1 22 22H36z" fill="#FFE8C2" opacity=".35"/><path d="M28 58A22 22 0 0 1 6 36h22z" fill="#F49D37" opacity=".35"/></symbol></svg>
+<canvas id="bg" aria-hidden="true"></canvas>
+<header class="hero">
+  <nav class="topbar glass" aria-label="Main"><div class="brand"><svg aria-hidden="true"><use href="#logo"/></svg>ScopeSignal</div><a class="lk" href="#how">How it works</a><a class="lk" href="#demo">Try it</a><a class="pill" href="#demo">Try the demo</a></nav>
+  <div class="card glass"><div class="orb hero-orb" role="img" aria-label="Orb character with eyes that follow the pointer"><canvas></canvas></div><span class="tagc">Independent concept</span>
+    <h1>Sort the feedback. Keep the scope.</h1>
+    <p>Paste a client message and your project brief. ScopeSignal splits the message into separate requests, checks each one against the brief, and sends them to you to approve.</p>
+    <a class="pill" href="#demo">Try the demo</a></div>
+</header>
+<div class="strip"><span class="l">Every request gets one of these labels</span><span><i style="background:#a6e878"></i>Inside the brief</span><span><i style="background:#8cc8ff"></i>New scope</span><span><i style="background:#b4a8ff"></i>Outside the brief</span><span><i style="background:#ffd45a"></i>Unclear request</span><span><i style="background:#ff94c8"></i>Possible bug</span></div>
+
+<section id="how" class="glass">
+  <h2>How it works</h2>
+  <ol class="flow" style="padding:0;margin:1.8rem 0 0">
+    <li><div class="n" style="--a:#ff9ad0;--b:#f26aa8;--d:#b8407f">1</div><h3>Brief</h3><p>What you agreed to build.</p></li>
+    <li><div class="n" style="--a:#ffc86a;--b:#ff9a3c;--d:#b8661a">2</div><h3>Message</h3><p>What the client just asked for.</p></li>
+    <li><div class="n" style="--a:#a99bff;--b:#5b4fc4;--d:#3a2f95">3</div><h3>Sorting</h3><p>Each request is checked against the brief, with the likely need behind it.</p></li>
+    <li><div class="n" style="--a:#92e05e;--b:#4fb52e;--d:#2f8a17">4</div><h3>Your call</h3><p>Rate impact and effort, then accept, edit, reject, or ask.</p></li>
+    <li><div class="n" style="--a:#4db1ff;--b:#0a84ff;--d:#0560b8">5</div><h3>Handoff</h3><p>Copy the log and the message.</p></li>
+  </ol>
+</section>
+
+<section id="demo" class="stage glass">
+  <h2>Try it</h2>
+  <p class="say" style="margin-bottom:1.4rem">Three short steps. Sample text is already filled in.</p>
+  <div class="bench">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-p="paste" aria-selected="true">1 Paste</button>
+      <button class="tab" role="tab" data-p="review" aria-selected="false" disabled>2 Review</button>
+      <button class="tab" role="tab" data-p="export" aria-selected="false" disabled>3 Export</button>
+    </div>
+    <div id="p-paste">
+      <p class="say">Paste the brief and the client’s message, then press the button.</p>
+      <div class="inputs">
+        <div class="hop"><label for="brief">The brief</label><small>What you agreed to build</small><textarea id="brief">Deliverables: marketing site and a task dashboard with filters.
+Auth: email login only.
+Reporting is out of scope for this phase.
+Timeline: three weeks, launch on the 28th.</textarea></div>
+        <div class="hop"><label for="fb">The client message</label><small>What they just asked for</small><textarea id="fb">Can we add Google login, make the dashboard simpler, and include a reporting page before Friday?</textarea></div>
+      </div>
+      <div class="nav2"><button class="jelly blue" id="go" type="button">Find the requests</button></div>
+    </div>
+    <div id="p-review" hidden>
+      <p class="say">Every request from the message arrives as a notification. Open one to see why it was sorted that way, rate impact and effort, then decide.</p>
+      <div class="chips" role="group" aria-label="Filter requests"><span>Show:</span><span id="chips" style="display:contents"></span></div>
+      <div class="list" id="list" aria-live="polite"></div>
+      <div class="nav2"><button class="ghost" data-go="paste" type="button">Back</button><button class="jelly blue" data-go="export" type="button">Continue to export</button></div>
+    </div>
+    <div id="p-export" hidden>
+      <p class="say">Accepted requests make the change log. Requests you sent back make the message to the client.</p>
+      <div class="two">
+        <div><h3>Change log</h3><p>Everything you accepted.</p><textarea id="log" aria-label="Change log" placeholder="Accept a request in step 2 and it will appear here."></textarea></div>
+        <div><h3>Message to the client</h3><p>Everything you marked Ask client.</p><textarea id="msg" aria-label="Draft message" placeholder="Choose Ask client on a request and a draft will appear here."></textarea></div>
+      </div>
+      <div class="nav2"><button class="ghost" data-go="review" type="button">Back</button><button class="jelly green" id="copy" type="button">Copy both</button><span id="copied" role="status"></span></div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="sitetop"><p>ScopeSignal is an independent portfolio concept, not made or endorsed by any company. Every example is synthetic and the demo uses simple matching rules, not a live AI model. Do not paste real client conversations without permission.</p>
+  <nav><a href="#how">How it works</a><a href="#demo">Try it</a></nav></div>
+  <div class="mid"><div><svg class="mark" aria-hidden="true"><use href="#logo"/></svg><div class="word" aria-label="ScopeSignal">ScopeSignal.</div><div class="tag">So nobody has to guess.</div></div></div>
+</footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+const cv=document.getElementById('bg'),gl=cv.getContext('webgl',{antialias:false,alpha:false});
+if(!gl){cv.style.display='none';return}
+const FS=`#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec3 u_colors[8];
+uniform vec4 u_scene;
+uniform vec4 u_shape;
+uniform vec4 u_surface;
+uniform vec4 u_finish;
+uniform vec4 u_transform;
+uniform vec4 u_space;
+uniform vec4 u_cursor;
+#define u_resolution u_scene.xy
+#define u_time u_scene.z
+#define u_colorCount u_scene.w
+#define u_scale u_shape.x
+#define u_intensity u_shape.y
+#define u_paramA u_shape.z
+#define u_warp u_shape.w
+#define u_detail u_surface.x
+#define u_contrast u_surface.y
+#define u_brightness u_surface.z
+#define u_saturation u_surface.w
+#define u_hue u_finish.x
+#define u_vignette u_finish.y
+#define u_blur u_finish.z
+#define u_grain u_finish.w
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+#define u_seed u_transform.x
+#else
+#define u_seed mod(u_transform.x, 31.0)
+#endif
+#define u_rotate u_transform.y
+#define u_drift u_transform.z
+#define u_oklab u_transform.w
+#define u_offset u_space.xy
+#define u_mouse u_space.zw
+#define u_cursorPresence u_cursor.x
+#define u_cursorEffect u_cursor.y
+#define u_cursorStrength u_cursor.z
+#define u_cursorRadius u_cursor.w
+float hash21(vec2 p) {
+#ifndef GL_FRAGMENT_PRECISION_HIGH
+  p = mod(p, 31.0);
+#endif
+  p = fract(p * vec2(234.34, 435.345));
+  p += dot(p, p + 34.23);
+  return fract(p.x * p.y);
+}
+float grainHash(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+vec2 hash22(vec2 p) {
+#ifndef GL_FRAGMENT_PRECISION_HIGH
+  p = mod(p, 31.0);
+#endif
+  float n = sin(dot(p, vec2(41.0, 289.0)));
+  return fract(vec2(15731.743, 7892.321) * n);
+}
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x),
+    mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x),
+    u.y);
+}
+float fbm(vec2 p) {
+  float v = 0.0;
+  float a = 0.5;
+  for (int i = 0; i < 5; i++) {
+    v += a * noise(p);
+    p = p * 2.03 + vec2(17.0, 9.2);
+    a *= 0.5;
+  }
+  return v;
+}
+vec3 srgbToLinear(vec3 c) {
+  return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)),
+    step(0.04045, c));
+}
+vec3 linearToSrgb(vec3 c) {
+  return mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055,
+    step(0.0031308, c));
+}
+vec3 linToOklab(vec3 c) {
+  float l = 0.4122214708 * c.r + 0.5363325363 * c.g + 0.0514459929 * c.b;
+  float m = 0.2119034982 * c.r + 0.6806995451 * c.g + 0.1073969566 * c.b;
+  float s = 0.0883024619 * c.r + 0.2817188376 * c.g + 0.6299787005 * c.b;
+  l = pow(max(l, 0.0), 1.0 / 3.0);
+  m = pow(max(m, 0.0), 1.0 / 3.0);
+  s = pow(max(s, 0.0), 1.0 / 3.0);
+  return vec3(
+    0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s);
+}
+vec3 oklabToLin(vec3 c) {
+  float l = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
+  float m = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
+  float s = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+  l = l * l * l; m = m * m * m; s = s * s * s;
+  return vec3(
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s);
+}
+vec3 mixColour(vec3 a, vec3 b, float t) {
+  if (u_oklab > 0.5) {
+    vec3 la = linToOklab(srgbToLinear(a));
+    vec3 lb = linToOklab(srgbToLinear(b));
+    return clamp(linearToSrgb(oklabToLin(mix(la, lb, t))), 0.0, 1.0);
+  }
+  return mix(a, b, t);
+}
+vec3 palette(float x) {
+  float n = max(u_colorCount - 1.0, 1.0);
+  float f = clamp(x, 0.0, 1.0) * n;
+  vec3 col = u_colors[0];
+  for (int i = 0; i < 7; i++) {
+    if (float(i) < n)
+      col = mixColour(col, u_colors[i + 1],
+        smoothstep(0.0, 1.0, clamp(f - float(i), 0.0, 1.0)));
+  }
+  return col;
+}
+vec3 hueRotate(vec3 col, float a) {
+  const mat3 toYIQ = mat3(0.299, 0.596, 0.211,
+                          0.587, -0.274, -0.523,
+                          0.114, -0.322, 0.312);
+  const mat3 toRGB = mat3(1.0, 1.0, 1.0,
+                          0.956, -0.272, -1.106,
+                          0.621, -0.647, 1.703);
+  vec3 yiq = toYIQ * col;
+  float ca = cos(a), sa = sin(a);
+  yiq = vec3(yiq.x, yiq.y * ca - yiq.z * sa, yiq.y * sa + yiq.z * ca);
+  return toRGB * yiq;
+}
+vec3 shade(vec2 uv, vec2 p, float t) {
+  float k = 2.0 + u_intensity * 6.0;
+  float v = sin(p.x * k + t) + sin(p.y * k * 0.8 - t * 0.7)
+    + sin((p.x + p.y) * k * 0.6 + t * 0.5)
+    + sin(length(p) * k * 1.2 - t);
+  return palette(0.5 + 0.5 * sin(v + u_seed));
+}
+void main() {
+  vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+  vec2 screenUv = uv;
+  vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy)
+    / min(u_resolution.x, u_resolution.y);
+  float cursorMask = 0.0;
+  if (u_cursorPresence > 0.001) {
+    vec2 cursor = (0.5 * u_mouse * u_resolution.xy)
+      / min(u_resolution.x, u_resolution.y);
+    vec2 cursorDelta = p - cursor;
+    if (u_cursorEffect < 0.5) {
+      p += cursor * u_cursorPresence * u_cursorStrength * 0.55;
+    } else {
+      float cursorDistance = length(cursorDelta);
+      vec2 cursorDirection = cursorDelta / max(cursorDistance, 0.0001);
+      cursorMask = u_cursorPresence
+        * (1.0 - smoothstep(0.0, u_cursorRadius, cursorDistance));
+      if (u_cursorEffect < 1.5) {
+        p -= cursorDirection * cursorMask * u_cursorStrength * 0.24;
+      } else if (u_cursorEffect < 2.5) {
+        float cursorAngle = cursorMask * u_cursorStrength * 2.2;
+        float cc = cos(cursorAngle), cs = sin(cursorAngle);
+        p = cursor + mat2(cc, -cs, cs, cc) * cursorDelta;
+      } else if (u_cursorEffect < 3.5) {
+        float ripple = sin(
+          cursorDistance / max(u_cursorRadius, 0.001) * 18.0 - u_time * 5.0);
+        p -= cursorDirection * ripple * cursorMask * u_cursorStrength * 0.07;
+      }
+    }
+  }
+  uv = p * min(u_resolution.x, u_resolution.y) / u_resolution.xy + 0.5;
+  p *= u_scale;
+  if (abs(u_rotate) > 0.0001) {
+    float cr = cos(u_rotate), sr = sin(u_rotate);
+    p = mat2(cr, -sr, sr, cr) * p;
+  }
+  p += u_offset;
+  if (u_drift > 0.0001)
+    p += u_drift * vec2(sin(u_time * 0.31), cos(u_time * 0.23));
+  if (u_warp > 0.0) {
+    p += u_warp * (vec2(
+      fbm(p * u_detail + u_seed),
+      fbm(p * u_detail + vec2(5.2, 1.3))) - 0.5);
+  }
+  vec3 col;
+  if (u_blur > 0.0) {
+    float e = u_blur;
+    float pe = e * u_scale;
+    vec2 uvE = vec2(e) * min(u_resolution.x, u_resolution.y) / u_resolution.xy;
+    col  = shade(uv, p, u_time) * 0.36;
+    col += shade(uv + vec2(uvE.x, 0.0), p + vec2(pe, 0.0), u_time) * 0.16;
+    col += shade(uv - vec2(uvE.x, 0.0), p - vec2(pe, 0.0), u_time) * 0.16;
+    col += shade(uv + vec2(0.0, uvE.y), p + vec2(0.0, pe), u_time) * 0.16;
+    col += shade(uv - vec2(0.0, uvE.y), p - vec2(0.0, pe), u_time) * 0.16;
+  } else {
+    col = shade(uv, p, u_time);
+  }
+  if (abs(u_contrast - 1.0) > 0.0001)
+    col = (col - 0.5) * u_contrast + 0.5;
+  if (abs(u_saturation - 1.0) > 0.0001) {
+    float luma = dot(col, vec3(0.299, 0.587, 0.114));
+    col = mix(vec3(luma), col, u_saturation);
+  }
+  if (abs(u_hue) > 0.0001)
+    col = hueRotate(col, u_hue);
+  if (abs(u_brightness) > 0.0001)
+    col += u_brightness;
+  if (u_vignette > 0.0001) {
+    float vd = length(screenUv - 0.5) * 1.41421356;
+    col *= 1.0 - u_vignette * smoothstep(0.35, 1.0, vd);
+  }
+  if (u_cursorPresence > 0.001 && u_cursorEffect > 3.5)
+    col += (vec3(0.18) + col * 0.12) * cursorMask * u_cursorStrength;
+  if (u_grain > 0.0001)
+    col += (grainHash(
+      gl_FragCoord.xy + vec2(u_seed * 17.0, u_seed * 31.0)) - 0.5) * u_grain;
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}`;
+function sh(t,src){const o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(o));return null}return o}
+const vs=sh(gl.VERTEX_SHADER,'attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}'),fs=sh(gl.FRAGMENT_SHADER,FS);
+if(!vs||!fs){cv.style.display='none';return}
+const pr=gl.createProgram();gl.attachShader(pr,vs);gl.attachShader(pr,fs);gl.linkProgram(pr);
+if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(pr));cv.style.display='none';return}
+gl.useProgram(pr);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const loc=gl.getAttribLocation(pr,'a');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+const U=n=>gl.getUniformLocation(pr,n);
+const cols=new Float32Array(24);cols.set([0.086,0.043,0.043,0.761,0.251,0.165,0.957,0.616,0.216,1.0,0.910,0.761]);
+gl.uniform3fv(U('u_colors'),cols);
+gl.uniform4f(U('u_shape'),1.50,0.48,0.50,0.00);
+gl.uniform4f(U('u_surface'),2.40,0.92,-0.50,1.00);
+gl.uniform4f(U('u_finish'),3.04,0.61,0.016,0.35);
+gl.uniform4f(U('u_transform'),7.0,0.0,0.16,0.0);
+gl.uniform4f(U('u_space'),0,0,0,0);
+gl.uniform4f(U('u_cursor'),0,4.0,0.65,0.30);
+const uScene=U('u_scene');
+let W=0,H=0;
+function size(){const d=Math.min(window.devicePixelRatio||1,2),w=Math.round(innerWidth*d),h=Math.round(innerHeight*d);if(w!==W||h!==H){W=cv.width=w;H=cv.height=h;gl.viewport(0,0,w,h)}}
+let t=0,last=0,raf=0;
+function draw(){size();gl.uniform4f(uScene,W,H,t*0.86,4.0);gl.drawArrays(gl.TRIANGLES,0,3)}
+function loop(now){const dt=last?(now-last)/1000:0;last=now;t+=dt;draw();raf=requestAnimationFrame(loop)}
+const calm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function start(){if(calm){draw();return}if(!raf){last=0;raf=requestAnimationFrame(loop)}}
+function stop(){cancelAnimationFrame(raf);raf=0}
+document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
+addEventListener('resize',()=>{if(calm||!raf)draw()});
+t=3;start();
+})();
+</script>
+<script>
+function makeOrb(host){
+const cv=host.querySelector('canvas');
+const gl=cv.getContext('webgl',{alpha:true,antialias:false,depth:false,stencil:false,premultipliedAlpha:false});
+if(!gl){host.style.background='linear-gradient(135deg,#FFE8C2,#F49D37,#C2402A)';cv.style.display='none';return}
+const VERT='attribute vec2 a_position;void main(){gl_Position=vec4(a_position,0.0,1.0);}';
+const FRAG=`precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform float u_speed;uniform vec2 u_look;uniform float u_blink;uniform float u_mode;uniform vec3 u_body;uniform vec3 u_eye;uniform vec3 u_c1;uniform vec3 u_c2;uniform vec3 u_c3;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
+float noise(vec2 p){vec2 i=floor(p);vec2 f=fract(p);float a=hash(i);float b=hash(i+vec2(1.0,0.0));float c=hash(i+vec2(0.0,1.0));float d=hash(i+vec2(1.0,1.0));vec2 u=f*f*(3.0-2.0*f);return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}
+float fbm(vec2 p){float v=0.0;float a=0.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);for(int i=0;i<5;i++){v+=a*noise(p);p=m*p;a*=0.5;}return v;}
+vec3 orient(vec3 p,vec2 look){float yaw=look.x*0.92;float pitch=-look.y*0.78;float cy=cos(yaw);float sy=sin(yaw);float cp=cos(pitch);float sp=sin(pitch);vec3 q=vec3(p.x,p.y*cp-p.z*sp,p.y*sp+p.z*cp);return vec3(q.x*cy+q.z*sy,q.y,-q.x*sy+q.z*cy);}
+float eyeMask(vec3 n,vec3 e,vec3 right,vec3 up,float halfH,float rad){float facing=dot(n,e);float x=dot(n,right)-dot(e,right);float y=dot(n,up)-dot(e,up);y-=clamp(y,-halfH,halfH);float d=length(vec2(x,y))-rad;float fill=1.0-smoothstep(-0.01,0.01,d);return fill*smoothstep(0.12,0.32,facing);}
+vec3 wash(vec3 n,float t){vec2 q=n.xy*2.2+n.z*0.85;vec2 w1=vec2(fbm(q*1.4+vec2(t*0.22,t*0.18)),fbm(q*1.4+vec2(-t*0.16,t*0.24)+4.1));q+=(w1-0.5)*0.72;float f=fbm(q*2.1+vec2(0.0,t*0.12));float g=fbm(q*4.6-vec2(t*0.2,0.0));vec3 col=mix(u_c1,u_c2,smoothstep(0.28,0.72,f));return mix(col,u_c3,pow(smoothstep(0.42,0.9,g),1.4));}
+void main(){vec2 uv=(gl_FragCoord.xy/u_resolution.xy)*2.0-1.0;float aspect=u_resolution.x/max(u_resolution.y,1.0);uv.x*=aspect;float radius=0.94;vec2 p=uv/radius;float r2=dot(p,p);float edge=1.0-smoothstep(0.985,1.012,sqrt(max(r2,0.0)));if(edge<=0.001){gl_FragColor=vec4(0.0);return;}
+float z=sqrt(max(1.0-r2,0.0));vec3 n=normalize(vec3(p,z));vec2 look=u_look;float lm=length(look);if(lm>1.0)look/=lm;
+vec3 right=orient(vec3(1.0,0.0,0.0),look);vec3 up=orient(vec3(0.0,1.0,0.0),look);vec3 eL=orient(normalize(vec3(-0.32,0.08,1.0)),look);vec3 eR=orient(normalize(vec3(0.32,0.08,1.0)),look);
+float halfH=mix(0.128,0.012,u_blink);float rad=mix(0.054,0.062,u_blink);float eyes=max(eyeMask(n,eL,right,up,halfH,rad),eyeMask(n,eR,right,up,halfH,rad));
+vec3 body=u_mode>0.5?wash(n,u_time*u_speed):u_body;vec3 col=mix(body,u_eye,clamp(eyes,0.0,1.0));gl_FragColor=vec4(clamp(col,0.0,1.0),edge);}`;
+const PAL=['#FFE8C2','#F49D37','#C2402A'],EYE='#0C0C10';
+const rgb=h=>{const n=parseInt(h.slice(1),16);return[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]};
+const U={};let prog,lost=false;
+function mk(t,src){const o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);return gl.getShaderParameter(o,gl.COMPILE_STATUS)?o:null}
+function init(){const v=mk(gl.VERTEX_SHADER,VERT),f=mk(gl.FRAGMENT_SHADER,FRAG);if(!v||!f)return false;
+ prog=gl.createProgram();gl.attachShader(prog,v);gl.attachShader(prog,f);gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))return false;
+ gl.useProgram(prog);const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+ const l=gl.getAttribLocation(prog,'a_position');gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+ ['u_resolution','u_time','u_speed','u_look','u_blink','u_mode','u_body','u_eye','u_c1','u_c2','u_c3'].forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+ gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.viewport(0,0,cv.width,cv.height);return true}
+if(!init()){host.style.background='linear-gradient(135deg,#FFE8C2,#F49D37,#C2402A)';cv.style.display='none';return}
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const look={x:0,y:.08},target={x:0,y:.08},glance={x:0,y:.08};
+let raf=0,last=0,clock=0,onScreen=true,pointerAt=-Infinity,nextBlink=1800+Math.random()*2400,blinkAt=-1e4,nextGlance=600+Math.random()*900;
+const pal=PAL.map(rgb),eye=rgb(EYE);
+function resize(){const d=Math.min(devicePixelRatio||1,2),w=host.clientWidth,h=host.clientHeight;if(w<=0||h<=0)return false;const W=Math.max(1,Math.floor(w*d)),H=Math.max(1,Math.floor(h*d));if(W===cv.width&&H===cv.height)return false;cv.width=W;cv.height=H;gl.viewport(0,0,W,H);return true}
+function tick(now){raf=0;if(lost)return;const dt=Math.min(50,Math.max(0,now-last));last=now;
+ const live=onScreen&&!reduce&&!document.hidden;if(live)clock+=dt;
+ const steering=now-pointerAt<3000;
+ if(!steering&&live&&clock>=nextGlance){const back=Math.random()<.3;glance.x=back?0:(Math.random()*2-1)*.8;glance.y=back?.08:(Math.random()*2-1)*.5;nextGlance=clock+900+Math.random()*2100}
+ const goal=steering?target:reduce?{x:0,y:.08}:glance,ease=live?(steering?.16:.1):1;
+ look.x+=(goal.x-look.x)*ease;look.y+=(goal.y-look.y)*ease;
+ if(!reduce&&clock>=nextBlink){blinkAt=clock;nextBlink=clock+2200+Math.random()*3800}
+ const bt=(clock-blinkAt)/1000;let b=0;if(!reduce){if(bt<.055)b=bt/.055;else if(bt<.1)b=1;else if(bt<.18)b=1-(bt-.1)/.08}
+ gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+ gl.uniform2f(U.u_resolution,cv.width,cv.height);gl.uniform1f(U.u_time,reduce?0:clock/1000);gl.uniform1f(U.u_speed,reduce?0:.55);
+ gl.uniform2f(U.u_look,look.x,look.y);gl.uniform1f(U.u_blink,b);gl.uniform1f(U.u_mode,1);
+ gl.uniform3f(U.u_body,pal[1][0],pal[1][1],pal[1][2]);gl.uniform3f(U.u_eye,eye[0],eye[1],eye[2]);
+ gl.uniform3f(U.u_c1,pal[0][0],pal[0][1],pal[0][2]);gl.uniform3f(U.u_c2,pal[1][0],pal[1][1],pal[1][2]);gl.uniform3f(U.u_c3,pal[2][0],pal[2][1],pal[2][2]);
+ gl.drawArrays(gl.TRIANGLES,0,6);if(live)raf=requestAnimationFrame(tick)}
+function wake(){if(raf||lost)return;last=performance.now();raf=requestAnimationFrame(tick)}
+addEventListener('pointermove',e=>{const r=host.getBoundingClientRect();if(r.width<=0)return;
+ target.x=Math.max(-1,Math.min(1,(e.clientX-(r.left+r.width/2))/(r.width/2)));target.y=Math.max(-1,Math.min(1,(r.top+r.height/2-e.clientY)/(r.height/2)));pointerAt=performance.now();if(onScreen)wake()},{passive:true});
+new ResizeObserver(()=>{if(resize()){cancelAnimationFrame(raf);raf=0;last=performance.now();tick(last)}}).observe(host);
+new IntersectionObserver(([en])=>{onScreen=en?en.isIntersecting:true;wake()}).observe(host);
+document.addEventListener('visibilitychange',wake);
+cv.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(raf);raf=0;cv.style.visibility='hidden'});
+cv.addEventListener('webglcontextrestored',()=>{if(!init())return;lost=false;cv.style.visibility='';wake()});
+resize();wake();
+}
+document.querySelectorAll('.orb').forEach(makeOrb);
+</script>
+<script>
+const STOP=new Set("a an the we can you please to of for on in and add make include before want need our should could would it is be this that page with".split(" "));
+const AMBIG=/simpl|cleaner|nicer|better|modern|pop|feel|improve|intuitive|friendlier/i,BUG=/broken|bug|error|crash|not working|doesn.?t work|fails?/i,OUT=/out of scope|not included|excluded|only/i;
+const TYPES={bug:{l:"Possible bug",c:"#ff94c8",s:"Reproduce it and confirm the expected behavior."},amb:{l:"Unclear request",c:"#ffd45a",s:"Ask which task feels difficult before changing anything."},out:{l:"Outside the brief",c:"#b4a8ff",s:"Review against the agreed scope and discuss timing or cost."},add:{l:"New scope",c:"#8cc8ff",s:"Confirm requirements and dependencies."},ok:{l:"Inside the brief",c:"#a6e878",s:"Add to the current task list."},ask:{l:"Needs a question",c:"#ffd45a",s:"Ask the client what outcome they expect."}};
+const words=s=>(s.toLowerCase().match(/[a-z]+/g)||[]).filter(w=>!STOP.has(w));
+const lines=t=>t.split(/\n|(?<=\.)\s+/).map(s=>s.trim()).filter(Boolean);
+const parts=t=>t.replace(/\?/g,'.').split(/[.;]|,\s*|\band\b/i).map(x=>x.replace(/^\s*(can we|could we|please|also)\s+/i,'').trim()).filter(x=>x.length>3);
+function classify(r,brief){const rw=words(r);let ev=null,sc=0;lines(brief).forEach(s=>{const b=new Set(words(s));const n=rw.filter(w=>b.has(w)).length;if(n>sc){sc=n;ev=s}});
+ const k=BUG.test(r)?'bug':AMBIG.test(r)?'amb':ev&&/out of scope|not included|excluded/i.test(ev)?'out':ev&&OUT.test(ev)?'add':ev?'ok':/\b(add|include|new|need|want)\b/i.test(r)?'add':'ask';
+ return{req:r,ev,k,step:TYPES[k].s,s:'pending',edit:false,need:needFor(r),imp:null,eff:null,evd:null}}
+const $=id=>document.getElementById(id);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const NEED=[[/login|sign ?in|password|account/i,"Users may want a faster or easier way to sign in."],[/dashboard|screen|layout|menu|navigation/i,"Users may struggle to find something or finish a task."],[/report|analytics|export|stats|metrics/i,"Someone needs to see progress or results without asking for them."],[/slow|speed|load/i,"Users may be waiting too long to finish a task."]];
+const needFor=r=>{const m=NEED.find(([re])=>re.test(r));return m?m[1]:"The need is not clear yet. Ask what outcome they expect."};
+function verdict(x){if(x.k==='ok')return{l:'In scope',c:'#a6e878'};if(x.k==='bug')return{l:'Fix',c:'#ff94c8'};if(x.k==='amb'||x.k==='ask')return{l:'Worth exploring',c:'#ffd45a'};
+ if(x.evd==='yes')return{l:'Valuable discovery',c:'#ffb870'};return{l:'Scope change',c:'#b4a8ff',hint:x.evd==='no'?'No evidence of a user need yet.':'Add evidence to see if this is a valuable discovery.'}}
+const RANK={'Do first':0,'Do soon':1,'Plan it':2,'Backlog':3,'Skip for now':4};
+function priority(x){const i=x.imp,e=x.eff;if(!i||!e)return null;
+ if(i==='h')return e==='h'?'Plan it':'Do first';if(i==='m')return e==='l'?'Do soon':'Plan it';return e==='l'?'Backlog':'Skip for now'}
+function seg(x,label,key,opts){const w=el('div','seg');w.append(el('b','',label));opts.forEach(([v,l])=>{const b=el('button','chip',l);b.type='button';b.setAttribute('aria-pressed',x[key]===v);b.onclick=()=>{x[key]=x[key]===v?null:v;render()};w.append(b)});return w}
+let state=[],shown=0,open=-1,filter='all',timer;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
+function panel(p){['paste','review','export'].forEach(k=>{$('p-'+k).hidden=k!==p;const t=document.querySelector('[data-p='+k+']');t.setAttribute('aria-selected',k===p)})}
+const match=(x,f)=>f==='all'||(f==='review'&&x.s==='pending')||(f==='question'&&x.s==='clarify')||(f==='accepted'&&x.s==='accepted');
+function render(){
+ const vis=state.slice(0,shown),chips=$('chips');chips.textContent='';
+ [['all','All'],['review','To review'],['question','Questions'],['accepted','Accepted']].forEach(([f,l])=>{
+  const b=el('button','chip',l+' '+vis.filter(x=>match(x,f)).length);b.type='button';b.setAttribute('aria-pressed',filter===f);b.onclick=()=>{filter=f;open=-1;render()};chips.append(b)});
+ const list=$('list'),keep=list.scrollTop;list.textContent='';
+ const v=vis.map((x,i)=>({x,i})).filter(({x})=>match(x,filter));
+ if(!v.length)list.append(el('div','hint',shown?'Nothing in this group yet.':'Requests will arrive here one by one.'));
+ v.forEach(({x,i})=>{
+  const T=TYPES[x.k],n=el('div','note'+(open===i?' open':'')+(x.fresh?' new':''));x.fresh=false;n.style.opacity=x.s==='rejected'?.5:1;
+  const h=el('button','head');h.type='button';h.setAttribute('aria-expanded',open===i);
+  const d=el('span','dot');d.style.background=T.c;
+  const b=el('span','badge',x.s==='pending'?T.l:x.s==='accepted'?'Accepted':x.s==='rejected'?'Rejected':'Asking client');b.style.background=x.s==='pending'?T.c:x.s==='accepted'?'#a6e878':x.s==='rejected'?'#ddd':'#ffd45a';
+  h.append(d,el('span','t',cap(x.req)),b);const pr=priority(x);if(pr)h.append(el('span','badge pri',pr));h.onclick=()=>{open=open===i?-1:i;render()};
+  const body=el('div','body'),ev=el('div','ev');
+  const a=el('div');a.append(el('b','','They asked for: '),el('q','',x.req));
+  const c=el('div');c.append(el('b','','Brief says: '));if(x.ev)c.append(el('q','',x.ev));else c.append('No matching passage found.');
+  const nd=el('div');nd.append(el('b','','Likely need underneath: '),x.need);ev.append(a,nd,c);
+  const rate=el('div','rate');rate.append(seg(x,'Impact','imp',[['l','Low'],['m','Medium'],['h','High']]),seg(x,'Effort','eff',[['l','Low'],['m','Medium'],['h','High']]),seg(x,'Real user need?','evd',[['yes','Yes, evidence'],['no','No evidence'],['unsure','Unsure']]));
+  const vd=verdict(x),pp=priority(x),vl=el('div','verd'),vb=el('span','badge',vd.l);vb.style.background=vd.c;vl.append(vb,pp?'Priority: '+pp:'Set impact and effort to see a priority.');if(vd.hint)vl.append(el('span','cap',vd.hint));rate.append(vl);
+  const st=el('div','step2',x.step);st.contentEditable=x.edit;st.setAttribute('aria-label','Suggested next step');st.oninput=()=>{x.step=st.textContent};
+  const acts=el('div','acts');
+  [['accepted','Accept','jelly green'],['clarify','Ask client','jelly blue'],['rejected','Reject','ghost'],['edit',x.edit?'Done editing':'Edit step','ghost']].forEach(([s,l,cl])=>{
+   const bt=el('button',cl,l);bt.type='button';
+   bt.onclick=()=>{if(s==='edit'){x.edit=!x.edit;render();if(x.edit)setTimeout(()=>$('list').querySelector('.open .step2').focus(),0)}else{x.s=x.s===s?'pending':s;render()}};acts.append(bt)});
+  body.append(ev,rate,st,acts,el('p','cap','Impact, effort and evidence are your call. Priority is worked out from them. Accept adds the request to the change log, Ask client adds it to the draft message, Reject leaves it out.'));
+  n.append(h,body);list.append(n)});list.scrollTop=keep;
+ const acc=state.filter(x=>x.s==='accepted'),cl=state.filter(x=>x.s==='clarify');
+ $('log').value=acc.slice().sort((a,b)=>(priority(a)?RANK[priority(a)]:9)-(priority(b)?RANK[priority(b)]:9)).map(x=>{const p=priority(x);return "• "+cap(x.req)+"\n  Need: "+x.need+"\n  Verdict: "+verdict(x).l+(p?"\n  Priority: "+p:"")+"\n  Next step: "+x.step}).join("\n\n");
+ $('msg').value=cl.length?"Hi,\n\nThanks for the feedback. Before we plan the work, we need a bit more detail on:\n\n"+cl.map(x=>"• "+cap(x.req)).join("\n")+"\n\nOnce we hear back, we will confirm scope and timing.\n\nThanks":"";
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>panel(b.dataset.p));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>panel(b.dataset.go));
+$('go').onclick=()=>{
+ const brief=$('brief').value,fb=$('fb').value.trim();clearInterval(timer);
+ if(!fb){toast('Paste a client message first');return}
+ state=parts(fb).map(r=>classify(r,brief));
+ if(/before\s+\w+day|by\s+\w+day|asap|tomorrow/i.test(fb))state.push({req:"Deadline mentioned in the message",ev:null,k:'ask',step:"Confirm the date and whether it still fits the timeline.",s:'pending',edit:false,need:"A date is driving the work. Confirm it is real.",imp:null,eff:null,evd:null});
+ shown=0;open=-1;filter='all';
+ document.querySelector('[data-p=review]').disabled=false;document.querySelector('[data-p=export]').disabled=false;
+ panel('review');
+ const calm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ const tick=()=>{if(shown<state.length){state[shown].fresh=true;shown++;render()}if(shown>=state.length){clearInterval(timer);toast(state.length+' requests arrived')}};
+ if(calm){shown=state.length;render();toast(state.length+' requests arrived')}else{render();tick();timer=setInterval(tick,650)}
+};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('log').value+"\n\n---\n\n"+$('msg').value);$('copied').textContent='Copied'}catch(e){$('copied').textContent='Select the text and copy it manually'}};
+</script>
+</body>
+</html>
